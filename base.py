@@ -3,10 +3,13 @@ import pandas as pd
 import numpy as np
 
 class SessionHnd:
-  def __init__(self, data_path):
+  def __init__(self, data_path, default_session_list=True):
     self.data_path = data_path
     self.sessions=pd.read_hdf('%s/ecephys_sessions.h5' % data_path)
-    self._set_session_ids()
+    if (default_session_list):
+        self.session_ids = [1055415082, 1118512505, 1044594870, 1130349290, 1081431006,1055403683, 1063010385, 1067781390, 1117148442, 1120251466]
+    else:
+        self._set_session_ids()
 
   def _set_session_ids(self):
     session_ids=[]
@@ -121,3 +124,16 @@ class SessionHnd:
       tmp['area']=area
       file_map=pd.concat([file_map,tmp])
     return (file_map)
+
+  def build_file_maps(self):    
+        n_procs = int(max(cpu_count(),1))
+        with Pool(n_procs) as p:
+            result=p.map(unit_file_map, session_ids)
+        self.file_map =pd.concat(result)
+      
+  def build_file_maps(self):
+        from multiprocessing import Pool, cpu_count
+        n_procs = int(max(cpu_count(), 1))
+        with Pool(n_procs) as p:
+            result = p.map(unit_file_map, session_ids)
+        self.file_map = pd.concat(result)
